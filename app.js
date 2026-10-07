@@ -1,0 +1,356 @@
+/**
+ * Spotify Playlist Genre Analyzer - Main Application Controller
+ */
+document.addEventListener('DOMContentLoaded', () => {
+    // DOM Elements
+    const playlistInput = document.getElementById('playlistInput');
+    const btnAnalyze = document.getElementById('btnAnalyze');
+    const btnSettings = document.getElementById('btnSettings');
+    const settingsModal = document.getElementById('settingsModal');
+    const btnCloseModal = document.getElementById('btnCloseModal');
+    const btnSaveSettings = document.getElementById('btnSaveSettings');
+    const clientIdInput = document.getElementById('clientIdInput');
+    const clientSecretInput = document.getElementById('clientSecretInput');
+    const statusCard = document.getElementById('statusCard');
+    const statusText = document.getElementById('statusText');
+    const progressBarFill = document.getElementById('progressBarFill');
+    const resultsSection = document.getElementById('resultsSection');
+    const btnShare = document.getElementById('btnShare');
+
+    // Chart instances
+    let doughnutChart = null;
+    let barChart = null;
+
+    // Load stored Spotify API credentials if any
+    const savedClientId = localStorage.getItem('spotify_client_id') || '';
+    const savedClientSecret = localStorage.getItem('spotify_client_secret') || '';
+    clientIdInput.value = savedClientId;
+    clientSecretInput.value = savedClientSecret;
+
+    // Settings Modal Listeners
+    btnSettings.addEventListener('click', () => {
+        settingsModal.classList.add('active');
+    });
+
+    btnCloseModal.addEventListener('click', () => {
+        settingsModal.classList.remove('active');
+    });
+
+    settingsModal.addEventListener('click', (e) => {
+        if (e.target === settingsModal) settingsModal.classList.remove('active');
+    });
+
+    btnSaveSettings.addEventListener('click', () => {
+        const cid = clientIdInput.value.trim();
+        const csec = clientSecretInput.value.trim();
+        localStorage.setItem('spotify_client_id', cid);
+        localStorage.setItem('spotify_client_secret', csec);
+        settingsModal.classList.remove('active');
+        showToast('Credenciais salvas com sucesso!');
+    });
+
+    // Preset Chips Listeners
+    document.querySelectorAll('.preset-chip').forEach(chip => {
+        chip.addEventListener('click', () => {
+            const presetId = chip.getAttribute('data-preset');
+            if (DEMO_PLAYLISTS[presetId]) {
+                playlistInput.value = `https://open.spotify.com/playlist/${presetId}`;
+                renderAnalysisResult(DEMO_PLAYLISTS[presetId]);
+            }
+        });
+    });
+
+    // Main Analyze Button Action
+    btnAnalyze.addEventListener('click', () => {
+        handleAnalysis();
+    });
+
+    playlistInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') handleAnalysis();
+    });
+
+    /**
+     * Handles the analysis trigger when user submits a URL or URI.
+     */
+    async function handleAnalysis() {
+        const rawInput = playlistInput.value.trim();
+
+        if (!rawInput) {
+            alert('Por favor, cole o link ou URI de uma playlist do Spotify.');
+            return;
+        }
+
+        const playlistId = SpotifyAPI.extractPlaylistId(rawInput);
+
+        // Check if input matches one of our demo playlists first
+        if (DEMO_PLAYLISTS[rawInput] || DEMO_PLAYLISTS[playlistId]) {
+            const demo = DEMO_PLAYLISTS[rawInput] || DEMO_PLAYLISTS[playlistId];
+            renderAnalysisResult(demo);
+            return;
+        }
+
+        if (!playlistId) {
+            alert('URL de playlist do Spotify inválida. Formato esperado: https://open.spotify.com/playlist/ID_DA_PLAYLIST');
+            return;
+        }
+
+        const clientId = localStorage.getItem('spotify_client_id');
+        const clientSecret = localStorage.getItem('spotify_client_secret');
+
+        // If user hasn't set custom API credentials, prompt or fallback to demo
+        if (!clientId || !clientSecret) {
+            const confirmDemo = confirm(
+                'Para analisar playlists reais fora dos exemplos pré-carregados, é recomendável configurar seu Client ID da API do Spotify (gratuito).\n\n' +
+                'Deseja ver uma análise de demonstração instantânea agora ou configurar sua chave?'
+            );
+            if (confirmDemo) {
+                // Show default demo
+                renderAnalysisResult(DEMO_PLAYLISTS['top_brasil']);
+                return;
+            } else {
+                settingsModal.classList.add('active');
+                return;
+            }
+        }
+
+        // Real API Analysis Execution
+        try {
+            showLoading(true);
+            updateStatus('Autenticando com o Spotify...', 10);
+
+            const token = await SpotifyAPI.getAccessToken(clientId, clientSecret);
+            const analysisData = await SpotifyAPI.fetchPlaylistAnalysis(
+                playlistId, 
+                token, 
+                (msg, pct) => updateStatus(msg, pct)
+            );
+
+            renderAnalysisResult(analysisData);
+        } catch (err) {
+            console.error(err);
+            alert(`Erro na Análise: ${err.message}`);
+        } finally {
+            showLoading(false);
+        }
+    }
+
+    /**
+     * Renders analysis results on the dashboard.
+     */
+    function renderAnalysisResult(data) {
+        showLoading(false);
+
+        // Hide Status, Show Results Section with animation
+        statusCard.classList.remove('active');
+        resultsSection.classList.add('active');
+
+        // Update Hero Predominant Badge
+        document.getElementById('heroCoverImg').src = data.image || 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=500&auto=format&fit=crop&q=80';
+        document.getElementById('playlistTitle').textContent = data.name;
+        document.getElementById('playlistOwner').textContent = data.owner;
+        document.getElementById('predominantGenreTitle').textContent = data.predominantGenre;
+
+        const topGenreObj = data.genres && data.genres[0] ? data.genres[0] : { percentage: 0 };
+        document.getElementById('predominantPercentage').innerHTML = `${topGenreObj.percentage}% <span>Dominância</span>`;
+
+        // Update Metrics Cards
+        document.getElementById('statTotalTracks').textContent = `${data.totalTracks} Músicas`;
+        document.getElementById('statTotalArtists').textContent = `${data.totalArtists} Artistas`;
+        document.getElementById('statDiversity').textContent = data.diversityIndex;
+
+        // Render Charts & List
+        renderDoughnutChart(data.genres);
+        renderBarChart(data.genres);
+        renderGenreList(data.genres);
+
+        // Scroll smoothly to results
+        resultsSection.scrollIntoView({ behavior: 'smooth' });
+    }
+
+    /**
+     * Render Doughnut Chart for Genre Percentages
+     */
+    function renderDoughnutChart(genres) {
+        const ctx = document.getElementById('genreDoughnutChart').getContext('2d');
+        if (doughnutChart) doughnutChart.destroy();
+
+        // Take top 7 genres for chart clarity, group rest as "Outros"
+        const topGenres = genres.slice(0, 7);
+        const labels = topGenres.map(g => g.name);
+        const dataValues = topGenres.map(g => g.percentage);
+        const colors = topGenres.map(g => g.color);
+
+        doughnutChart = new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: labels,
+                datasets: [{
+                    data: dataValues,
+                    backgroundColor: colors,
+                    borderWidth: 2,
+                    borderColor: '#12161f',
+                    hoverOffset: 12
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            color: '#A0AABF',
+                            font: { family: 'Plus Jakarta Sans', size: 12, weight: '600' },
+                            padding: 16,
+                            usePointStyle: true
+                        }
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return ` ${context.label}: ${context.raw}%`;
+                            }
+                        }
+                    }
+                },
+                cutout: '70%'
+            }
+        });
+    }
+
+    /**
+     * Render Horizontal Bar Chart for Genre Ranking
+     */
+    function renderBarChart(genres) {
+        const ctx = document.getElementById('genreBarChart').getContext('2d');
+        if (barChart) barChart.destroy();
+
+        const topGenres = genres.slice(0, 6);
+        const labels = topGenres.map(g => g.name);
+        const dataValues = topGenres.map(g => g.percentage);
+        const colors = topGenres.map(g => g.color);
+
+        barChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Porcentagem (%)',
+                    data: dataValues,
+                    backgroundColor: colors,
+                    borderRadius: 8,
+                    borderSkipped: false
+                }]
+            },
+            options: {
+                indexAxis: 'y',
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return ` ${context.raw}% da playlist`;
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        grid: { color: 'rgba(255, 255, 255, 0.05)' },
+                        ticks: { color: '#A0AABF', font: { family: 'Plus Jakarta Sans' } }
+                    },
+                    y: {
+                        grid: { display: false },
+                        ticks: { color: '#FFFFFF', font: { family: 'Plus Jakarta Sans', weight: '600' } }
+                    }
+                }
+            }
+        });
+    }
+
+    /**
+     * Render Interactive List of All Genres
+     */
+    function renderGenreList(genres) {
+        const container = document.getElementById('genreListContainer');
+        container.innerHTML = '';
+
+        genres.forEach(g => {
+            const item = document.createElement('div');
+            item.className = 'genre-item';
+
+            const artistsHint = g.artists && g.artists.length > 0
+                ? `<div class="genre-artists-hint">Artistas: ${g.artists.join(', ')}</div>`
+                : '';
+
+            item.innerHTML = `
+                <div class="genre-item-header">
+                    <div class="genre-name-group">
+                        <span class="genre-color-dot" style="background-color: ${g.color}"></span>
+                        <span class="genre-name">${g.name}</span>
+                    </div>
+                    <span class="genre-percent-val">${g.percentage}%</span>
+                </div>
+                <div class="genre-bar-bg">
+                    <div class="genre-bar-fill" style="width: 0%; background-color: ${g.color}"></div>
+                </div>
+                ${artistsHint}
+            `;
+
+            container.appendChild(item);
+
+            // Animate progress bar fill width
+            setTimeout(() => {
+                const fillBar = item.querySelector('.genre-bar-fill');
+                if (fillBar) fillBar.style.width = `${g.percentage}%`;
+            }, 100);
+        });
+    }
+
+    // Share & Copy Summary Feature
+    btnShare.addEventListener('click', () => {
+        const title = document.getElementById('playlistTitle').textContent;
+        const mainGenre = document.getElementById('predominantGenreTitle').textContent;
+        const mainPct = document.getElementById('predominantPercentage').innerText.split('\n')[0];
+
+        const summaryText = `🎵 Análise de Gênero Musical da Playlist "${title}":\n` +
+            `🔥 Gênero Predominante: ${mainGenre} (${mainPct})\n` +
+            `📊 Analisado com o Spotify Genre Analyzer!`;
+
+        if (navigator.clipboard) {
+            navigator.clipboard.writeText(summaryText);
+            showToast('Resumo copiado para a área de transferência! 🚀');
+        } else {
+            alert(summaryText);
+        }
+    });
+
+    // Helper functions
+    function showLoading(isLoading) {
+        if (isLoading) {
+            statusCard.classList.add('active');
+            resultsSection.classList.remove('active');
+        }
+    }
+
+    function updateStatus(message, percentage) {
+        statusText.textContent = message;
+        progressBarFill.style.width = `${percentage}%`;
+    }
+
+    function showToast(msg) {
+        const toast = document.createElement('div');
+        toast.style.cssText = `
+            position: fixed; bottom: 30px; right: 30px;
+            background: #1DB954; color: #000; padding: 1rem 1.5rem;
+            border-radius: 12px; font-weight: 700; font-family: 'Plus Jakarta Sans', sans-serif;
+            box-shadow: 0 10px 25px rgba(29,185,84,0.4); z-index: 9999;
+            animation: fadeInUp 0.3s ease;
+        `;
+        toast.textContent = msg;
+        document.body.appendChild(toast);
+        setTimeout(() => toast.remove(), 3000);
+    }
+});
