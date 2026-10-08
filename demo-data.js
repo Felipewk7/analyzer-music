@@ -1,5 +1,5 @@
 /**
- * Sample pre-analyzed playlist data for instant demo mode without needing Spotify API keys.
+ * Sample pre-analyzed playlist data with complete artist frequency lists.
  */
 const DEMO_PLAYLISTS = {
     'top_brasil': {
@@ -19,7 +19,18 @@ const DEMO_PLAYLISTS = {
             { name: 'Pop Nacional', count: 4, percentage: 8.0, color: '#00B0FF' },
             { name: 'Trap Brasileiro', count: 3, percentage: 6.0, color: '#7C4DFF' }
         ],
-        topArtists: ['Jorge & Mateus', 'Anitta', 'Thiaguinho', 'Ludmilla', 'Luan Santana']
+        allArtists: [
+            { id: '1', name: 'Jorge & Mateus', count: 8, percentage: 16.0, genres: ['Sertanejo Pop'] },
+            { id: '2', name: 'Anitta', count: 6, percentage: 12.0, genres: ['Funk Carioca', 'Pop'] },
+            { id: '3', name: 'Thiaguinho', count: 5, percentage: 10.0, genres: ['Pagode'] },
+            { id: '4', name: 'Ludmilla', count: 4, percentage: 8.0, genres: ['Pagode', 'Funk'] },
+            { id: '5', name: 'Henrique & Juliano', count: 4, percentage: 8.0, genres: ['Sertanejo'] },
+            { id: '6', name: 'Marília Mendonça', count: 4, percentage: 8.0, genres: ['Sertanejo Pop'] },
+            { id: '7', name: 'Luan Santana', count: 3, percentage: 6.0, genres: ['Sertanejo'] },
+            { id: '8', name: 'MC Ryan SP', count: 3, percentage: 6.0, genres: ['Funk Carioca'] },
+            { id: '9', name: 'Matuê', count: 2, percentage: 4.0, genres: ['Trap Brasileiro'] },
+            { id: '10', name: 'Melim', count: 2, percentage: 4.0, genres: ['MPB', 'Pop'] }
+        ]
     },
     'rock_classics': {
         id: 'rock_classics',
@@ -37,7 +48,16 @@ const DEMO_PLAYLISTS = {
             { name: 'Blues Rock', count: 7, percentage: 9.3, color: '#8D6E63' },
             { name: 'Psychedelic Rock', count: 5, percentage: 6.6, color: '#AB47BC' }
         ],
-        topArtists: ['AC/DC', 'Queen', 'Led Zeppelin', 'Pink Floyd', 'Guns N\' Roses']
+        allArtists: [
+            { id: 'r1', name: 'Queen', count: 12, percentage: 16.0, genres: ['Classic Rock'] },
+            { id: 'r2', name: 'AC/DC', count: 10, percentage: 13.3, genres: ['Hard Rock'] },
+            { id: 'r3', name: 'Led Zeppelin', count: 9, percentage: 12.0, genres: ['Classic Rock'] },
+            { id: 'r4', name: 'Pink Floyd', count: 8, percentage: 10.6, genres: ['Psychedelic Rock'] },
+            { id: 'r5', name: 'Guns N\' Roses', count: 7, percentage: 9.3, genres: ['Hard Rock'] },
+            { id: 'r6', name: 'Aerosmith', count: 6, percentage: 8.0, genres: ['Hard Rock'] },
+            { id: 'r7', name: 'The Beatles', count: 5, percentage: 6.6, genres: ['Classic Rock'] },
+            { id: 'r8', name: 'Rolling Stones', count: 5, percentage: 6.6, genres: ['Blues Rock'] }
+        ]
     },
     'global_pop': {
         id: 'global_pop',
@@ -55,41 +75,12 @@ const DEMO_PLAYLISTS = {
             { name: 'Trap / Hip Hop', count: 6, percentage: 12.0, color: '#3F51B5' },
             { name: 'Indie Pop', count: 5, percentage: 10.0, color: '#00BCD4' }
         ],
-        topArtists: ['Dua Lipa', 'The Weeknd', 'Taylor Swift', 'Billie Eilish', 'Post Malone']
-    },
-    'electronic_vibes': {
-        id: 'electronic_vibes',
-        name: 'Electronic Rave & House',
-        owner: 'Spotify',
-        image: 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=500&auto=format&fit=crop&q=80',
-        totalTracks: 60,
-        totalArtists: 32,
-        predominantGenre: 'Edm / House',
-        diversityIndex: 'Concentrado (65/100)',
-        genres: [
-            { name: 'Edm / House', count: 26, percentage: 43.3, color: '#00E5FF' },
-            { name: 'Progressive House', count: 14, percentage: 23.3, color: '#651FFF' },
-            { name: 'Electro House', count: 10, percentage: 16.7, color: '#D500F9' },
-            { name: 'Deep House', count: 6, percentage: 10.0, color: '#00E676' },
-            { name: 'Techno', count: 4, percentage: 6.7, color: '#FF3D00' }
-        ],
-        topArtists: ['Calvin Harris', 'David Guetta', 'Avicii', 'Tiësto', 'Alok']
-    },
-    'lofi_chill': {
-        id: 'lofi_chill',
-        name: 'Lofi Beats to Study/Relax',
-        owner: 'Spotify',
-        image: 'https://images.unsplash.com/photo-1508700115892-45ecd05ae2ad?w=500&auto=format&fit=crop&q=80',
-        totalTracks: 80,
-        totalArtists: 60,
-        predominantGenre: 'Lofi Hip Hop',
-        diversityIndex: 'Muito Focado (88/100)',
-        genres: [
-            { name: 'Lofi Hip Hop', count: 48, percentage: 60.0, color: '#795548' },
-            { name: 'Chillhop', count: 16, percentage: 20.0, color: '#8D6E63' },
-            { name: 'Jazz Hop', count: 10, percentage: 12.5, color: '#BCAAA4' },
-            { name: 'Ambient', count: 6, percentage: 7.5, color: '#D7CCC8' }
-        ],
-        topArtists: ['ChilledCow', 'Kupla', 'Idealism', 'j\'san', 'Nymano']
+        allArtists: [
+            { id: 'p1', name: 'The Weeknd', count: 7, percentage: 14.0, genres: ['Dance Pop', 'R&B'] },
+            { id: 'p2', name: 'Dua Lipa', count: 6, percentage: 12.0, genres: ['Dance Pop'] },
+            { id: 'p3', name: 'Taylor Swift', count: 5, percentage: 10.0, genres: ['Pop'] },
+            { id: 'p4', name: 'Billie Eilish', count: 4, percentage: 8.0, genres: ['Indie Pop'] },
+            { id: 'p5', name: 'Post Malone', count: 4, percentage: 8.0, genres: ['Trap / Hip Hop'] }
+        ]
     }
 };

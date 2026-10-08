@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Analisador de Gêneros de Playlists do Spotify</title>
-    <meta name="description" content="Descubra o gênero musical mais predominante e a porcentagem exata de cada gênero em qualquer playlist do Spotify com gráficos interativos.">
+    <meta name="description" content="Descubra o gênero musical mais predominante, a porcentagem de cada gênero e a contagem completa de todas as bandas e artistas na sua playlist do Spotify.">
     
     <!-- Google Fonts: Plus Jakarta Sans -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -30,7 +30,7 @@
                     Spotify Genre Analyzer
                 </div>
 
-                <button id="btnSettings" class="btn-settings" title="Configurar API do Spotify">
+                <button id="btnSettings" class="btn-settings" title="Configurar API do Spotify (Opcional)">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <circle cx="12" cy="12" r="3"></circle>
                         <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
@@ -40,7 +40,7 @@
             </div>
 
             <h1>Analisador de Gêneros de <span>Playlists</span></h1>
-            <p>Descubra instantaneamente qual é o gênero predominante e a porcentagem exata de cada estilo musical presente na sua playlist favorita do Spotify.</p>
+            <p>Analise a playlist completa (mesmo com milhares de músicas), veja os gráficos de gêneros e descubra quantas faixas existem de cada banda e artista.</p>
         </header>
 
         <!-- Search / Input Card -->
@@ -64,8 +64,6 @@
                 <button class="preset-chip" data-preset="top_brasil">🇧🇷 Top Brasil 2026</button>
                 <button class="preset-chip" data-preset="global_pop">🔥 Today's Top Hits</button>
                 <button class="preset-chip" data-preset="rock_classics">🎸 Rock Classics</button>
-                <button class="preset-chip" data-preset="electronic_vibes">⚡ Electronic Rave</button>
-                <button class="preset-chip" data-preset="lofi_chill">☕ Lofi Beats</button>
             </div>
         </div>
 
@@ -108,7 +106,7 @@
                 <div class="stat-card">
                     <div class="stat-icon">🎤</div>
                     <div class="stat-content">
-                        <h4>Artistas Únicos</h4>
+                        <h4>Bandas & Artistas</h4>
                         <p id="statTotalArtists">0 Artistas</p>
                     </div>
                 </div>
@@ -121,30 +119,62 @@
                 </div>
             </div>
 
-            <!-- Dashboard Charts Grid -->
-            <div class="dashboard-grid">
-                <!-- Doughnut Chart Box -->
-                <div class="card-box">
-                    <h3>📊 Distribuição de Gêneros (%)</h3>
-                    <div class="chart-container">
-                        <canvas id="genreDoughnutChart"></canvas>
+            <!-- Navigation Tabs -->
+            <div class="tabs-container">
+                <button id="tabBtnGenres" class="tab-btn active">
+                    📊 Visão Geral de Gêneros & Gráficos
+                </button>
+                <button id="tabBtnArtists" class="tab-btn">
+                    🎤 Todos os Artistas & Bandas (<span id="tabArtistTotalCount">0</span>)
+                </button>
+            </div>
+
+            <!-- TAB 1: GENRES & CHARTS -->
+            <div id="tabContentGenres" class="tab-content active">
+                <div class="dashboard-grid">
+                    <div class="card-box">
+                        <h3>📊 Distribuição de Gêneros (%)</h3>
+                        <div class="chart-container">
+                            <canvas id="genreDoughnutChart"></canvas>
+                        </div>
+                    </div>
+
+                    <div class="card-box">
+                        <h3>🏆 Top Gêneros mais Frequentes</h3>
+                        <div class="chart-container">
+                            <canvas id="genreBarChart"></canvas>
+                        </div>
                     </div>
                 </div>
 
-                <!-- Bar Chart Ranking Box -->
-                <div class="card-box">
-                    <h3>🏆 Top Gêneros mais Frequentes</h3>
-                    <div class="chart-container">
-                        <canvas id="genreBarChart"></canvas>
+                <div class="card-box" style="margin-bottom: 2rem;">
+                    <h3>📋 Lista Completa de Gêneros Musicais Identificados</h3>
+                    <div id="genreListContainer" class="genre-list-container">
+                        <!-- Populated dynamically -->
                     </div>
                 </div>
             </div>
 
-            <!-- Detailed Genre List & Breakdown -->
-            <div class="card-box" style="margin-bottom: 2rem;">
-                <h3>📋 Lista Completa de Gêneros Musicais Identificados</h3>
-                <div id="genreListContainer" class="genre-list-container">
-                    <!-- Populated dynamically -->
+            <!-- TAB 2: ALL BANDS & ARTISTS -->
+            <div id="tabContentArtists" class="tab-content">
+                <div class="card-box" style="margin-bottom: 2rem;">
+                    <div class="artist-tab-header">
+                        <h3>🎤 Bandas e Artistas Presentes na Playlist</h3>
+                        <div class="artist-filter-bar">
+                            <div class="search-input-wrapper">
+                                <input type="text" id="artistSearchInput" class="artist-search-input" placeholder="🔍 Filtrar por nome da banda ou artista...">
+                            </div>
+                            <select id="artistSortSelect" class="artist-sort-select">
+                                <option value="count_desc">Mais Músicas na Playlist</option>
+                                <option value="count_asc">Menos Músicas</option>
+                                <option value="name_asc">Ordem Alfabética (A-Z)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div id="artistListGrid" class="artist-list-grid">
+                        <!-- Populated dynamically -->
+                    </div>
                 </div>
             </div>
 
@@ -171,13 +201,12 @@
     <div id="settingsModal" class="modal-overlay">
         <div class="modal-card">
             <div class="modal-header">
-                <h3>Configuração de API do Spotify</h3>
+                <h3>Configuração de API do Spotify (Opcional)</h3>
                 <button id="btnCloseModal" class="btn-close-modal">&times;</button>
             </div>
             <div class="modal-body">
                 <p>
-                    Para analisar <strong>qualquer playlist pública do Spotify</strong> em tempo real, insira suas credenciais da API do Spotify (gratuitas).
-                    Você pode criar um app em 30 segundos no <a href="https://developer.spotify.com/dashboard" target="_blank" rel="noopener">Spotify Developer Dashboard</a>.
+                    Se desejar utilizar suas próprias credenciais privadas do Spotify Developer, insira-as abaixo.
                 </p>
 
                 <div class="form-group">
@@ -189,10 +218,6 @@
                     <label for="clientSecretInput">Client Secret do Spotify:</label>
                     <input type="password" id="clientSecretInput" class="form-input" placeholder="Cole seu Client Secret aqui...">
                 </div>
-
-                <p style="font-size: 0.8rem; color: #78859E;">
-                    🔒 Suas chaves são armazenadas exclusivamente no <code>localStorage</code> do seu próprio navegador e nunca são enviadas para servidores externos.
-                </p>
 
                 <button id="btnSaveSettings" class="btn-analyze" style="width: 100%; justify-content: center; margin-top: 1rem;">
                     Salvar Credenciais

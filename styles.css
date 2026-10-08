@@ -1,6 +1,6 @@
 /* ==========================================================================
    Spotify Playlist Genre Analyzer - Main Stylesheet
-   Theme: Spotify Dark Neon Glassmorphism
+   Theme: Spotify Dark Neon Glassmorphism with Tabs & Artist View
    ========================================================================== */
 
 :root {
@@ -25,7 +25,6 @@
     --transition-smooth: 0.35s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-/* --- Global Resets & Base Styles --- */
 * {
     margin: 0;
     padding: 0;
@@ -42,7 +41,6 @@ body {
     line-height: 1.5;
 }
 
-/* Ambient Background Glows */
 body::before {
     content: '';
     position: fixed;
@@ -67,7 +65,6 @@ body::after {
     z-index: 0;
 }
 
-/* Layout Wrapper */
 .app-container {
     max-width: 1200px;
     margin: 0 auto;
@@ -76,7 +73,6 @@ body::after {
     z-index: 1;
 }
 
-/* --- Header Section --- */
 header {
     text-align: center;
     margin-bottom: 2.5rem;
@@ -150,11 +146,11 @@ header h1 span {
 header p {
     color: var(--text-muted);
     font-size: 1.1rem;
-    max-width: 620px;
+    max-width: 650px;
     margin: 0 auto;
 }
 
-/* --- Search & Input Box --- */
+/* Search Card */
 .search-card {
     background: var(--bg-card);
     border: 1px solid var(--border-color);
@@ -236,11 +232,6 @@ header p {
     box-shadow: 0 12px 25px rgba(29, 185, 84, 0.45);
 }
 
-.btn-analyze:active {
-    transform: translateY(0);
-}
-
-/* Preset Demos Section */
 .presets-wrapper {
     margin-top: 1.25rem;
     display: flex;
@@ -273,7 +264,7 @@ header p {
     color: var(--spotify-green);
 }
 
-/* --- Status & Loading State --- */
+/* Status Card */
 .status-card {
     display: none;
     background: var(--bg-card);
@@ -301,8 +292,8 @@ header p {
 
 .progress-bar-container {
     width: 100%;
-    max-width: 400px;
-    height: 6px;
+    max-width: 450px;
+    height: 8px;
     background: rgba(255, 255, 255, 0.1);
     border-radius: 10px;
     margin: 1rem auto 0;
@@ -316,7 +307,7 @@ header p {
     transition: width 0.3s ease;
 }
 
-/* --- Dashboard / Results Display --- */
+/* Results Section & Dashboard */
 .results-section {
     display: none;
     animation: fadeInUp 0.5s ease;
@@ -326,7 +317,6 @@ header p {
     display: block;
 }
 
-/* Hero Badge: Main Predominant Genre */
 .hero-genre-card {
     background: linear-gradient(135deg, rgba(29, 185, 84, 0.15) 0%, rgba(124, 77, 255, 0.1) 100%);
     border: 1px solid var(--border-glow);
@@ -336,8 +326,6 @@ header p {
     align-items: center;
     gap: 2rem;
     margin-bottom: 2rem;
-    position: relative;
-    overflow: hidden;
     backdrop-filter: blur(20px);
 }
 
@@ -398,10 +386,8 @@ header p {
     font-size: 0.7rem;
     text-transform: uppercase;
     font-weight: 700;
-    letter-spacing: 0.05em;
 }
 
-/* Stats Metrics Grid */
 .stats-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
@@ -445,7 +431,49 @@ header p {
     color: #FFF;
 }
 
-/* Grid Layout for Charts & Genre List */
+/* --- TAB NAVIGATION SYSTEM --- */
+.tabs-container {
+    display: flex;
+    gap: 0.75rem;
+    margin-bottom: 1.75rem;
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 0.5rem;
+}
+
+.tab-btn {
+    background: transparent;
+    border: none;
+    color: var(--text-muted);
+    font-family: inherit;
+    font-size: 1rem;
+    font-weight: 700;
+    padding: 0.75rem 1.5rem;
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    transition: var(--transition-fast);
+}
+
+.tab-btn:hover {
+    color: var(--text-main);
+    background: rgba(255, 255, 255, 0.04);
+}
+
+.tab-btn.active {
+    color: var(--spotify-green);
+    background: rgba(29, 185, 84, 0.12);
+    border: 1px solid var(--border-glow);
+}
+
+.tab-content {
+    display: none;
+}
+
+.tab-content.active {
+    display: block;
+    animation: fadeIn 0.3s ease;
+}
+
+/* Dashboard Grid */
 .dashboard-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -465,9 +493,6 @@ header p {
     font-size: 1.25rem;
     font-weight: 700;
     margin-bottom: 1.25rem;
-    display: flex;
-    align-items: center;
-    gap: 0.6rem;
     color: var(--text-main);
 }
 
@@ -477,27 +502,11 @@ header p {
     width: 100%;
 }
 
-/* Genre List Breakdown */
+/* Genre List */
 .genre-list-container {
-    max-height: 380px;
+    max-height: 400px;
     overflow-y: auto;
     padding-right: 0.5rem;
-}
-
-/* Custom Scrollbar */
-.genre-list-container::-webkit-scrollbar {
-    width: 6px;
-}
-.genre-list-container::-webkit-scrollbar-track {
-    background: rgba(255, 255, 255, 0.05);
-    border-radius: 10px;
-}
-.genre-list-container::-webkit-scrollbar-thumb {
-    background: rgba(255, 255, 255, 0.2);
-    border-radius: 10px;
-}
-.genre-list-container::-webkit-scrollbar-thumb:hover {
-    background: var(--spotify-green);
 }
 
 .genre-item {
@@ -506,12 +515,6 @@ header p {
     border: 1px solid rgba(255, 255, 255, 0.04);
     border-radius: var(--radius-sm);
     padding: 0.85rem 1rem;
-    transition: var(--transition-fast);
-}
-
-.genre-item:hover {
-    background: rgba(255, 255, 255, 0.05);
-    border-color: rgba(255, 255, 255, 0.1);
 }
 
 .genre-item-header {
@@ -541,7 +544,6 @@ header p {
 .genre-percent-val {
     font-weight: 700;
     font-size: 0.95rem;
-    color: var(--text-main);
 }
 
 .genre-bar-bg {
@@ -561,6 +563,117 @@ header p {
     font-size: 0.78rem;
     color: var(--text-muted);
     margin-top: 0.35rem;
+}
+
+/* --- ALL ARTISTS TAB STYLES --- */
+.artist-tab-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.artist-filter-bar {
+    display: flex;
+    gap: 0.75rem;
+    flex: 1;
+    max-width: 600px;
+}
+
+.search-input-wrapper {
+    flex: 1;
+}
+
+.artist-search-input {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    background: rgba(0, 0, 0, 0.4);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    color: var(--text-main);
+    font-family: inherit;
+    font-size: 0.9rem;
+    outline: none;
+}
+
+.artist-search-input:focus {
+    border-color: var(--spotify-green);
+}
+
+.artist-sort-select {
+    padding: 0.75rem 1rem;
+    background: rgba(10, 12, 16, 0.9);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    color: var(--text-main);
+    font-family: inherit;
+    font-size: 0.88rem;
+    outline: none;
+    cursor: pointer;
+}
+
+.artist-list-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 1rem;
+    max-height: 520px;
+    overflow-y: auto;
+    padding-right: 0.5rem;
+}
+
+.artist-card {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: var(--radius-md);
+    padding: 1rem 1.25rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    transition: var(--transition-fast);
+}
+
+.artist-card:hover {
+    background: rgba(29, 185, 84, 0.08);
+    border-color: rgba(29, 185, 84, 0.3);
+    transform: translateY(-2px);
+}
+
+.artist-info {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.artist-rank {
+    font-size: 0.85rem;
+    font-weight: 800;
+    color: var(--text-muted);
+    width: 24px;
+}
+
+.artist-name-title {
+    font-weight: 700;
+    font-size: 0.98rem;
+    color: #FFF;
+}
+
+.artist-genre-sub {
+    font-size: 0.76rem;
+    color: var(--text-muted);
+}
+
+.artist-badge-count {
+    background: rgba(29, 185, 84, 0.2);
+    border: 1px solid var(--spotify-green);
+    color: var(--spotify-green);
+    font-weight: 800;
+    font-size: 0.85rem;
+    padding: 0.4rem 0.8rem;
+    border-radius: 50px;
+    text-align: center;
+    white-space: nowrap;
 }
 
 /* Action Bar */
@@ -591,7 +704,7 @@ header p {
     border-color: rgba(255, 255, 255, 0.3);
 }
 
-/* --- Settings Modal --- */
+/* Settings Modal */
 .modal-overlay {
     display: none;
     position: fixed;
@@ -649,11 +762,6 @@ header p {
     line-height: 1.6;
 }
 
-.modal-body p a {
-    color: var(--spotify-green);
-    text-decoration: underline;
-}
-
 .form-group {
     margin-bottom: 1.25rem;
 }
@@ -663,7 +771,6 @@ header p {
     font-size: 0.85rem;
     font-weight: 600;
     margin-bottom: 0.4rem;
-    color: var(--text-main);
 }
 
 .form-input {
@@ -678,11 +785,6 @@ header p {
     outline: none;
 }
 
-.form-input:focus {
-    border-color: var(--spotify-green);
-}
-
-/* --- Footer --- */
 footer {
     text-align: center;
     margin-top: 3rem;
@@ -697,11 +799,6 @@ footer a {
     text-decoration: none;
 }
 
-footer a:hover {
-    text-decoration: underline;
-}
-
-/* Keyframe Animations */
 @keyframes spin {
     to { transform: rotate(360deg); }
 }
@@ -716,7 +813,6 @@ footer a:hover {
     to { opacity: 1; transform: translateY(0); }
 }
 
-/* Responsive Rules */
 @media (max-width: 900px) {
     .dashboard-grid {
         grid-template-columns: 1fr;
@@ -731,20 +827,9 @@ footer a:hover {
     .badge-percentage {
         width: 100%;
     }
-}
 
-@media (max-width: 600px) {
-    header h1 {
-        font-size: 2rem;
-    }
-
-    .input-group {
+    .artist-filter-bar {
+        max-width: 100%;
         flex-direction: column;
-    }
-
-    .btn-analyze {
-        width: 100%;
-        padding: 0.9rem;
-        justify-content: center;
     }
 }
