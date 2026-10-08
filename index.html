@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Analisador de Gêneros de Playlists do Spotify</title>
-    <meta name="description" content="Descubra o gênero musical mais predominante, a porcentagem de cada gênero e a contagem completa de todas as bandas e artistas na sua playlist do Spotify.">
+    <meta name="description" content="Análise profunda de playlists do Spotify de qualquer tamanho (3500+ músicas), com suporte a subgêneros específicos de Rock, Metal, Pop e contagem de bandas.">
     
     <!-- Google Fonts: Plus Jakarta Sans -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -27,7 +27,7 @@
                     <svg viewBox="0 0 24 24">
                         <path d="M12 0C5.376 0 0 5.376 0 12s5.376 12 12 12 12-5.376 12-12S18.624 0 12 0zm5.521 17.341c-.217.357-.676.467-1.033.249-2.83-1.729-6.391-2.121-10.584-1.163-.4.092-.796-.161-.888-.561-.092-.401.161-.796.561-.888 4.587-1.048 8.52-.6 11.695 1.341.357.218.467.676.249 1.033zm1.474-3.277c-.273.444-.855.587-1.299.314-3.238-1.99-8.175-2.567-11.996-1.408-.499.151-1.026-.131-1.177-.63-.151-.499.131-1.026.63-1.177 4.37-1.326 9.805-.688 13.528 1.602.444.273.587.855.314 1.299zm.135-3.411C15.253 8.358 8.896 8.145 5.176 9.274c-.58.176-1.196-.157-1.372-.737-.176-.58.157-1.196.737-1.372 4.272-1.296 11.31-1.054 15.82 1.624.522.31.691 1.002.381 1.524-.31.522-1.002.691-1.524.381z"/>
                     </svg>
-                    Spotify Genre Analyzer
+                    Spotify Genre Analyzer PRO
                 </div>
 
                 <button id="btnSettings" class="btn-settings" title="Configurar API do Spotify (Opcional)">
@@ -40,7 +40,7 @@
             </div>
 
             <h1>Analisador de Gêneros de <span>Playlists</span></h1>
-            <p>Analise a playlist completa (mesmo com milhares de músicas), veja os gráficos de gêneros e descubra quantas faixas existem de cada banda e artista.</p>
+            <p>Leitura de playlists gigantescas (3500+ faixas) com classificação detalhada de subgêneros de Rock, Metal e Pop, mais ranking completo de bandas.</p>
         </header>
 
         <!-- Search / Input Card -->
@@ -51,26 +51,26 @@
                         <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path>
                         <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
                     </svg>
-                    <input type="text" id="playlistInput" class="playlist-input" placeholder="Cole o link ou URI da playlist do Spotify aqui..." autocomplete="off">
+                    <input type="text" id="playlistInput" class="playlist-input" placeholder="Cole o link de qualquer playlist (ex: 3500+ músicas)..." autocomplete="off">
                 </div>
                 <button id="btnAnalyze" class="btn-analyze">
-                    Analisar Agora
+                    Analisar Playlist Completa
                 </button>
             </div>
 
             <!-- Quick Demo Presets -->
             <div class="presets-wrapper">
-                <span class="presets-label">⚡ Teste com exemplos pré-carregados:</span>
-                <button class="preset-chip" data-preset="top_brasil">🇧🇷 Top Brasil 2026</button>
+                <span class="presets-label">⚡ Exemplos para teste rápido:</span>
+                <button class="preset-chip" data-preset="rock_classics">🎸 Mega Rock Playlist (3500 faixas)</button>
+                <button class="preset-chip" data-preset="top_brasil">🇧🇷 Top Brasil</button>
                 <button class="preset-chip" data-preset="global_pop">🔥 Today's Top Hits</button>
-                <button class="preset-chip" data-preset="rock_classics">🎸 Rock Classics</button>
             </div>
         </div>
 
         <!-- Status Card (Loading State) -->
         <div id="statusCard" class="status-card">
             <div class="spinner"></div>
-            <h3 id="statusText">Processando playlist...</h3>
+            <h3 id="statusText">Lendo faixas da playlist...</h3>
             <div class="progress-bar-container">
                 <div id="progressBarFill" class="progress-bar-fill"></div>
             </div>
@@ -82,7 +82,7 @@
             <div class="hero-genre-card">
                 <img id="heroCoverImg" src="" alt="Capa da Playlist" class="playlist-cover-img">
                 <div class="hero-info">
-                    <div class="hero-subtitle">Gênero Mais Predominante</div>
+                    <div class="hero-subtitle">Gênero Predominante Principal</div>
                     <div id="predominantGenreTitle" class="hero-genre-title">Aguardando análise...</div>
                     <div class="hero-meta">
                         Playlist: <strong id="playlistTitle">--</strong> • Criador: <strong id="playlistOwner">--</strong>
@@ -99,7 +99,7 @@
                 <div class="stat-card">
                     <div class="stat-icon">🎵</div>
                     <div class="stat-content">
-                        <h4>Músicas Analisadas</h4>
+                        <h4>Músicas Lidas</h4>
                         <p id="statTotalTracks">0 Músicas</p>
                     </div>
                 </div>
@@ -122,10 +122,10 @@
             <!-- Navigation Tabs -->
             <div class="tabs-container">
                 <button id="tabBtnGenres" class="tab-btn active">
-                    📊 Visão Geral de Gêneros & Gráficos
+                    📊 Visão Geral de Subgêneros & Gráficos
                 </button>
                 <button id="tabBtnArtists" class="tab-btn">
-                    🎤 Todos os Artistas & Bandas (<span id="tabArtistTotalCount">0</span>)
+                    🎸 Todas as Bandas & Artistas (<span id="tabArtistTotalCount">0</span>)
                 </button>
             </div>
 
@@ -133,14 +133,14 @@
             <div id="tabContentGenres" class="tab-content active">
                 <div class="dashboard-grid">
                     <div class="card-box">
-                        <h3>📊 Distribuição de Gêneros (%)</h3>
+                        <h3>📊 Distribuição de Subgêneros (%)</h3>
                         <div class="chart-container">
                             <canvas id="genreDoughnutChart"></canvas>
                         </div>
                     </div>
 
                     <div class="card-box">
-                        <h3>🏆 Top Gêneros mais Frequentes</h3>
+                        <h3>🏆 Top Subgêneros mais Frequentes</h3>
                         <div class="chart-container">
                             <canvas id="genreBarChart"></canvas>
                         </div>
@@ -148,7 +148,7 @@
                 </div>
 
                 <div class="card-box" style="margin-bottom: 2rem;">
-                    <h3>📋 Lista Completa de Gêneros Musicais Identificados</h3>
+                    <h3>📋 Detalhamento Específico de Subgêneros Identificados</h3>
                     <div id="genreListContainer" class="genre-list-container">
                         <!-- Populated dynamically -->
                     </div>
@@ -159,11 +159,14 @@
             <div id="tabContentArtists" class="tab-content">
                 <div class="card-box" style="margin-bottom: 2rem;">
                     <div class="artist-tab-header">
-                        <h3>🎤 Bandas e Artistas Presentes na Playlist</h3>
+                        <h3>🎸 Ranking Completo de Bandas e Artistas da Playlist</h3>
                         <div class="artist-filter-bar">
                             <div class="search-input-wrapper">
-                                <input type="text" id="artistSearchInput" class="artist-search-input" placeholder="🔍 Filtrar por nome da banda ou artista...">
+                                <input type="text" id="artistSearchInput" class="artist-search-input" placeholder="🔍 Filtrar por nome da banda/artista...">
                             </div>
+                            <select id="artistGenreFilter" class="artist-sort-select">
+                                <option value="ALL">Todos os Gêneros</option>
+                            </select>
                             <select id="artistSortSelect" class="artist-sort-select">
                                 <option value="count_desc">Mais Músicas na Playlist</option>
                                 <option value="count_asc">Menos Músicas</option>
@@ -206,7 +209,7 @@
             </div>
             <div class="modal-body">
                 <p>
-                    Se desejar utilizar suas próprias credenciais privadas do Spotify Developer, insira-as abaixo.
+                    Insira suas credenciais da API do Spotify caso deseje utilizar suas próprias chaves privadas.
                 </p>
 
                 <div class="form-group">

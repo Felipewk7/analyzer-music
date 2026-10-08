@@ -1,6 +1,6 @@
 /**
- * Spotify Playlist Genre Analyzer - Main Application Controller
- * Unlimited pagination & complete artist frequency listing.
+ * Spotify Playlist Genre Analyzer PRO - Main Controller
+ * Deep Rock & Metal sub-genre taxonomy, 3500+ track pagination & band filtering.
  */
 document.addEventListener('DOMContentLoaded', () => {
     // DOM Elements
@@ -18,22 +18,23 @@ document.addEventListener('DOMContentLoaded', () => {
     const resultsSection = document.getElementById('resultsSection');
     const btnShare = document.getElementById('btnShare');
 
-    // Tabs DOM Elements
+    // Tabs & Filters DOM
     const tabBtnGenres = document.getElementById('tabBtnGenres');
     const tabBtnArtists = document.getElementById('tabBtnArtists');
     const tabContentGenres = document.getElementById('tabContentGenres');
     const tabContentArtists = document.getElementById('tabContentArtists');
     const tabArtistTotalCount = document.getElementById('tabArtistTotalCount');
     const artistSearchInput = document.getElementById('artistSearchInput');
+    const artistGenreFilter = document.getElementById('artistGenreFilter');
     const artistSortSelect = document.getElementById('artistSortSelect');
     const artistListGrid = document.getElementById('artistListGrid');
 
-    // Chart instances & state data
+    // Chart instances & State
     let doughnutChart = null;
     let barChart = null;
     let currentAnalysisData = null;
 
-    // Load stored credentials if any
+    // Load credentials if present
     clientIdInput.value = localStorage.getItem('spotify_client_id') || '';
     clientSecretInput.value = localStorage.getItem('spotify_client_secret') || '';
 
@@ -60,7 +61,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    // Tab Navigation switching
+    // Tab Switching
     tabBtnGenres.addEventListener('click', () => switchTab('genres'));
     tabBtnArtists.addEventListener('click', () => switchTab('artists'));
 
@@ -78,11 +79,12 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // Artist Search & Sorting Event Listeners
+    // Artist Search, Genre & Sort Listeners
     artistSearchInput.addEventListener('input', () => filterAndRenderArtists());
+    artistGenreFilter.addEventListener('change', () => filterAndRenderArtists());
     artistSortSelect.addEventListener('change', () => filterAndRenderArtists());
 
-    // Analyze Action
+    // Main Analyze Execution
     btnAnalyze.addEventListener('click', () => handleAnalysis());
     playlistInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') handleAnalysis(); });
 
@@ -101,13 +103,13 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         if (!playlistId) {
-            alert('URL de playlist inválida.');
+            alert('URL de playlist do Spotify inválida.');
             return;
         }
 
         try {
             showLoading(true);
-            updateStatus('Iniciando varredura da playlist...', 10);
+            updateStatus('Iniciando varredura ilimitada da playlist...', 5);
 
             const token = await SpotifyAPI.getAccessToken();
             const analysisData = await SpotifyAPI.fetchPlaylistAnalysis(
@@ -119,7 +121,7 @@ document.addEventListener('DOMContentLoaded', () => {
             renderAnalysisResult(analysisData);
         } catch (err) {
             console.error(err);
-            const fallback = SpotifyAPI.generateSmartPublicAnalysis(playlistId, 'Playlist Pública', null);
+            const fallback = SpotifyAPI.generateSmartPublicAnalysis(playlistId, 'Mega Rock Playlist', null);
             renderAnalysisResult(fallback);
         } finally {
             showLoading(false);
@@ -151,22 +153,37 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('statDiversity').textContent = data.diversityIndex;
         tabArtistTotalCount.textContent = data.totalArtists;
 
+        // Populate Artist Genre Filter Select Dropdown
+        populateArtistGenreFilter(data.genres);
+
         // Render Charts & Lists
         renderDoughnutChart(data.genres);
         renderBarChart(data.genres);
         renderGenreList(data.genres);
         filterAndRenderArtists();
 
-        // Default to Genres tab
         switchTab('genres');
         resultsSection.scrollIntoView({ behavior: 'smooth' });
+    }
+
+    /**
+     * Populates Genre Filter Select Dropdown in Artists Tab
+     */
+    function populateArtistGenreFilter(genres) {
+        artistGenreFilter.innerHTML = '<option value="ALL">Todos os Gêneros</option>';
+        genres.forEach(g => {
+            const opt = document.createElement('option');
+            opt.value = g.name;
+            opt.textContent = `${g.name} (${g.percentage}%)`;
+            artistGenreFilter.appendChild(opt);
+        });
     }
 
     function renderDoughnutChart(genres) {
         const ctx = document.getElementById('genreDoughnutChart').getContext('2d');
         if (doughnutChart) doughnutChart.destroy();
 
-        const topGenres = genres.slice(0, 7);
+        const topGenres = genres.slice(0, 8);
         doughnutChart = new Chart(ctx, {
             type: 'doughnut',
             data: {
@@ -184,10 +201,15 @@ document.addEventListener('DOMContentLoaded', () => {
                 plugins: {
                     legend: {
                         position: 'bottom',
-                        labels: { color: '#A0AABF', font: { family: 'Plus Jakarta Sans', size: 12 } }
+                        labels: { color: '#A0AABF', font: { family: 'Plus Jakarta Sans', size: 11, weight: '600' }, padding: 12, usePointStyle: true }
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) { return ` ${context.label}: ${context.raw}%`; }
+                        }
                     }
                 },
-                cutout: '70%'
+                cutout: '68%'
             }
         });
     }
@@ -196,7 +218,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const ctx = document.getElementById('genreBarChart').getContext('2d');
         if (barChart) barChart.destroy();
 
-        const topGenres = genres.slice(0, 6);
+        const topGenres = genres.slice(0, 7);
         barChart = new Chart(ctx, {
             type: 'bar',
             data: {
@@ -253,19 +275,22 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     /**
-     * Filters and renders the complete Band & Artist Grid with search & sorting.
+     * Filters & renders Band & Artist Grid with search keyword, genre dropdown filter & sorting.
      */
     function filterAndRenderArtists() {
         if (!currentAnalysisData || !currentAnalysisData.allArtists) return;
 
         const searchTerm = artistSearchInput.value.toLowerCase().trim();
+        const selectedGenre = artistGenreFilter.value;
         const sortBy = artistSortSelect.value;
 
-        let filtered = currentAnalysisData.allArtists.filter(artist => 
-            artist.name.toLowerCase().includes(searchTerm)
-        );
+        let filtered = currentAnalysisData.allArtists.filter(artist => {
+            const matchesSearch = artist.name.toLowerCase().includes(searchTerm);
+            const matchesGenre = selectedGenre === 'ALL' || (artist.genres && artist.genres.includes(selectedGenre));
+            return matchesSearch && matchesGenre;
+        });
 
-        // Sorting Logic
+        // Sorting
         if (sortBy === 'count_desc') {
             filtered.sort((a, b) => b.count - a.count);
         } else if (sortBy === 'count_asc') {
@@ -278,8 +303,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (filtered.length === 0) {
             artistListGrid.innerHTML = `
-                <div style="grid-column: 1/-1; text-align: center; color: var(--text-muted); padding: 2rem;">
-                    Nenhum artista ou banda encontrado com o termo "${searchTerm}".
+                <div style="grid-column: 1/-1; text-align: center; color: var(--text-muted); padding: 2.5rem;">
+                    Nenhuma banda ou artista encontrado com os filtros selecionados.
                 </div>
             `;
             return;
@@ -289,19 +314,25 @@ document.addEventListener('DOMContentLoaded', () => {
             const card = document.createElement('div');
             card.className = 'artist-card';
 
-            const genreSub = artist.genres && artist.genres.length > 0 ? artist.genres.join(', ') : 'Gênero Diverso';
-            const trackLabel = artist.count === 1 ? '1 música' : `${artist.count} músicas`;
+            const subgenreBadges = (artist.genres && artist.genres.length > 0)
+                ? artist.genres.map(g => `<span class="artist-subgenre-tag">${g}</span>`).join('')
+                : '<span class="artist-subgenre-tag">Rock / Variados</span>';
+
+            const trackText = artist.count === 1 ? '1 música' : `${artist.count} músicas`;
+            const pctText = artist.percentage ? ` (${artist.percentage}%)` : '';
 
             card.innerHTML = `
                 <div class="artist-info">
                     <span class="artist-rank">#${index + 1}</span>
                     <div>
                         <div class="artist-name-title">${artist.name}</div>
-                        <div class="artist-genre-sub">${genreSub}</div>
+                        <div class="artist-genre-tags-container">
+                            ${subgenreBadges}
+                        </div>
                     </div>
                 </div>
                 <div class="artist-badge-count">
-                    ${trackLabel}
+                    ${trackText}${pctText}
                 </div>
             `;
 
@@ -309,16 +340,17 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Share Button
+    // Share Button Action
     btnShare.addEventListener('click', () => {
         const title = document.getElementById('playlistTitle').textContent;
         const mainGenre = document.getElementById('predominantGenreTitle').textContent;
         const mainPct = document.getElementById('predominantPercentage').innerText.split('\n')[0];
 
-        const summaryText = `🎵 Análise de Gêneros da Playlist "${title}":\n` +
-            `🔥 Gênero Predominante: ${mainGenre} (${mainPct})\n` +
-            `🎤 Total de Artistas: ${currentAnalysisData ? currentAnalysisData.totalArtists : 0}\n` +
-            `📊 Gerado no Spotify Genre Analyzer!`;
+        const summaryText = `🎵 Análise da Playlist "${title}":\n` +
+            `🔥 Subgênero Predominante: ${mainGenre} (${mainPct})\n` +
+            `🎸 Total de Músicas: ${currentAnalysisData ? currentAnalysisData.totalTracks : 0}\n` +
+            `🎤 Total de Bandas/Artistas: ${currentAnalysisData ? currentAnalysisData.totalArtists : 0}\n` +
+            `📊 Gerado no Spotify Genre Analyzer PRO!`;
 
         if (navigator.clipboard) {
             navigator.clipboard.writeText(summaryText);
