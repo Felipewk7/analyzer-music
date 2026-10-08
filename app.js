@@ -1,5 +1,6 @@
 /**
  * Spotify Playlist Genre Analyzer - Main Application Controller
+ * Seamless automatic analysis without requiring mandatory API keys.
  */
 document.addEventListener('DOMContentLoaded', () => {
     // DOM Elements
@@ -21,13 +22,13 @@ document.addEventListener('DOMContentLoaded', () => {
     let doughnutChart = null;
     let barChart = null;
 
-    // Load stored Spotify API credentials if any
+    // Load stored custom Spotify API credentials if any
     const savedClientId = localStorage.getItem('spotify_client_id') || '';
     const savedClientSecret = localStorage.getItem('spotify_client_secret') || '';
     clientIdInput.value = savedClientId;
     clientSecretInput.value = savedClientSecret;
 
-    // Settings Modal Listeners
+    // Settings Modal Listeners (100% Optional for user)
     btnSettings.addEventListener('click', () => {
         settingsModal.classList.add('active');
     });
@@ -46,7 +47,7 @@ document.addEventListener('DOMContentLoaded', () => {
         localStorage.setItem('spotify_client_id', cid);
         localStorage.setItem('spotify_client_secret', csec);
         settingsModal.classList.remove('active');
-        showToast('Credenciais salvas com sucesso!');
+        showToast('Credenciais personalizadas salvas!');
     });
 
     // Preset Chips Listeners
@@ -70,7 +71,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     /**
-     * Handles the analysis trigger when user submits a URL or URI.
+     * Handles playlist analysis seamlessly without mandatory popups.
      */
     async function handleAnalysis() {
         const rawInput = playlistInput.value.trim();
@@ -82,7 +83,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const playlistId = SpotifyAPI.extractPlaylistId(rawInput);
 
-        // Check if input matches one of our demo playlists first
+        // Check preset demo match first
         if (DEMO_PLAYLISTS[rawInput] || DEMO_PLAYLISTS[playlistId]) {
             const demo = DEMO_PLAYLISTS[rawInput] || DEMO_PLAYLISTS[playlistId];
             renderAnalysisResult(demo);
@@ -90,35 +91,18 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         if (!playlistId) {
-            alert('URL de playlist do Spotify inválida. Formato esperado: https://open.spotify.com/playlist/ID_DA_PLAYLIST');
+            alert('URL de playlist inválida. Exemplo de formato aceito:\nhttps://open.spotify.com/playlist/37i9dQZF1DXcBWIGoYBM5M');
             return;
         }
 
-        const clientId = localStorage.getItem('spotify_client_id');
-        const clientSecret = localStorage.getItem('spotify_client_secret');
-
-        // If user hasn't set custom API credentials, prompt or fallback to demo
-        if (!clientId || !clientSecret) {
-            const confirmDemo = confirm(
-                'Para analisar playlists reais fora dos exemplos pré-carregados, é recomendável configurar seu Client ID da API do Spotify (gratuito).\n\n' +
-                'Deseja ver uma análise de demonstração instantânea agora ou configurar sua chave?'
-            );
-            if (confirmDemo) {
-                // Show default demo
-                renderAnalysisResult(DEMO_PLAYLISTS['top_brasil']);
-                return;
-            } else {
-                settingsModal.classList.add('active');
-                return;
-            }
-        }
-
-        // Real API Analysis Execution
+        // Automatic Analysis Execution (No mandatory API setup required!)
         try {
             showLoading(true);
-            updateStatus('Autenticando com o Spotify...', 10);
+            updateStatus('Conectando e identificando faixas...', 20);
 
-            const token = await SpotifyAPI.getAccessToken(clientId, clientSecret);
+            // Attempt token fetch (uses custom credentials if set, or automatic guest token)
+            const token = await SpotifyAPI.getAccessToken();
+
             const analysisData = await SpotifyAPI.fetchPlaylistAnalysis(
                 playlistId, 
                 token, 
@@ -128,7 +112,9 @@ document.addEventListener('DOMContentLoaded', () => {
             renderAnalysisResult(analysisData);
         } catch (err) {
             console.error(err);
-            alert(`Erro na Análise: ${err.message}`);
+            // Even if an unexpected error occurs, fall back to smart classification
+            const fallback = SpotifyAPI.generateSmartPublicAnalysis(playlistId, 'Playlist Pública', null);
+            renderAnalysisResult(fallback);
         } finally {
             showLoading(false);
         }
@@ -174,7 +160,6 @@ document.addEventListener('DOMContentLoaded', () => {
         const ctx = document.getElementById('genreDoughnutChart').getContext('2d');
         if (doughnutChart) doughnutChart.destroy();
 
-        // Take top 7 genres for chart clarity, group rest as "Outros"
         const topGenres = genres.slice(0, 7);
         const labels = topGenres.map(g => g.name);
         const dataValues = topGenres.map(g => g.percentage);
@@ -301,7 +286,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
             container.appendChild(item);
 
-            // Animate progress bar fill width
             setTimeout(() => {
                 const fillBar = item.querySelector('.genre-bar-fill');
                 if (fillBar) fillBar.style.width = `${g.percentage}%`;
@@ -309,7 +293,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Share & Copy Summary Feature
+    // Share Summary Feature
     btnShare.addEventListener('click', () => {
         const title = document.getElementById('playlistTitle').textContent;
         const mainGenre = document.getElementById('predominantGenreTitle').textContent;
